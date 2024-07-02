@@ -36,3 +36,8 @@ build/
 
 ### Mac OS ###
 .DS_Store
+
+### Project-specific files ###
+**/database.sqlite
+output.log
+sample.db
