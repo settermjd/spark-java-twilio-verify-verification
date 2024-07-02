@@ -1,4 +1,4 @@
-# Java Login Verification
+# Spark Java Login Verification with Twilio Verify
 
 This is a small project showing how to authenticate users with [Twilio Verify][twilio-verify-url] within a [Spark Java][spark-java-url] project.
 It is a Java implementation of [an existing tutorial][flask-tutorial-url] on the Twilio blog; a tutorial will be written for this implementation as well.
