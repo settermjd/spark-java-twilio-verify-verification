@@ -1,0 +1,21 @@
+<Configuration name="AppConfig" status="debug">
+    <Appenders>
+        <Console name="stdout" target="SYSTEM_OUT">
+            <PatternLayout pattern="%d{yyyy-MM-dd HH:mm:ss} %p %m%n"/>
+        </Console>
+        <File name="file" fileName="output.log" append="true">
+            <PatternLayout>
+                <Pattern>%d{yyyy-MM-dd HH:mm:ss} %-5p %m%n</Pattern>
+            </PatternLayout>
+        </File>
+    </Appenders>
+
+    <Loggers>
+        # Override log level for specified package
+        <Logger name="org.settermjd.LoginVerification" level="TRACE"/>
+        <Root level="INFO">
+            <appender-ref ref="stdout" />
+            <appender-ref ref="file" />
+        </Root>
+    </Loggers>
+</Configuration>
