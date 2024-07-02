@@ -1,4 +1,4 @@
-<h1>$user.getEmail()'s Profile</h1>
+<h1>$user.emailAddress()'s Profile</h1>
 
 <h2>Thank you for protecting your account!</h2>
 
@@ -13,10 +13,10 @@
     </thead>
     <tbody>
         <tr>
-            <td>$user.getUsername()</td>
-            <td>$user.getFirstName()</td>
-            <td>$user.getLastName()</td>
-            <td>$user.getEmailAddress()</td>
+            <td>$user.username()</td>
+            <td>$user.firstName()</td>
+            <td>$user.lastName()</td>
+            <td>$user.emailAddress()</td>
         </tr>
     </tbody>
 </table>
