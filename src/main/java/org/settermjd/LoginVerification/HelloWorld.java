@@ -35,7 +35,8 @@ public class HelloWorld {
                             rs.getString("username"),
                             rs.getString("first_name"),
                             rs.getString("last_name"),
-                            rs.getString("email_address")
+                            rs.getString("email_address"),
+                            rs.getString("phone_number")
                     );
                     model.put("user", user);
                 }
