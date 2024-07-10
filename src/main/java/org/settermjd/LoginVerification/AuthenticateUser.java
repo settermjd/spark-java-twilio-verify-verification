@@ -33,6 +33,8 @@ public class AuthenticateUser {
                 dotenv.get("VERIFY_SERVICE_SID")
         );
 
+        Map<String, Object> model = new HashMap<>();
+
         // Make static files available in the application
         staticFiles.location("/public");
         staticFiles.expireTime(600);
@@ -41,13 +43,13 @@ public class AuthenticateUser {
             before("/*", (q, a) -> logger.info("Received login route request"));
 
             get("", (request, response) -> {
-                Map<String, Object> model = new HashMap<>();
                 String error = request.session().attribute("error");
                 if (error != null && ! error.isEmpty()) {
                     model.put("error", error);
                 }
                 return new ModelAndView(model, "templates/login.vm");
             }, new VelocityTemplateEngine());
+
             post("", (request, response) -> {
                 String username = request.queryParams("username");
                 if (username == null || username.isEmpty()) {
@@ -76,9 +78,9 @@ public class AuthenticateUser {
             before("/*", (q, a) -> logger.info("Received verify route request"));
 
             get("", ((request, response) -> {
-                Map<String, Object> model = new HashMap<>();
                 return new ModelAndView(model, "templates/verifyme.vm");
             }), new VelocityTemplateEngine());
+
             post("", ((request, response) -> {
                 String code = request.queryParams("code");
                 if (code == null || code.isEmpty()) {
