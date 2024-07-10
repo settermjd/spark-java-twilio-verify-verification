@@ -1,4 +1,4 @@
-package org.settermjd.LoginVerification;
+package org.settermjd.loginverification.service;
 
 import com.twilio.Twilio;
 import com.twilio.rest.verify.v2.service.Verification;

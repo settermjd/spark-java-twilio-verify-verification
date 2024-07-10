@@ -1,4 +1,4 @@
-package org.settermjd.LoginVerification;
+package org.settermjd.loginverification;
 
 import com.twilio.rest.verify.v2.service.VerificationCheck;
 
@@ -9,6 +9,9 @@ import java.util.Objects;
 import io.github.cdimascio.dotenv.Dotenv;
 import org.apache.logging.log4j.Logger;
 import org.apache.logging.log4j.LogManager;
+import org.settermjd.loginverification.entity.User;
+import org.settermjd.loginverification.service.TwilioService;
+import org.settermjd.loginverification.service.UserService;
 import spark.ModelAndView;
 import spark.Redirect;
 import spark.template.velocity.VelocityTemplateEngine;

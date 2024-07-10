@@ -1,4 +1,6 @@
-package org.settermjd.LoginVerification;
+package org.settermjd.loginverification.service;
+
+import org.settermjd.loginverification.entity.User;
 
 import java.sql.*;
 

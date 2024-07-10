@@ -12,7 +12,7 @@
 
     <Loggers>
         # Override log level for specified package
-        <Logger name="org.settermjd.LoginVerification" level="TRACE"/>
+        <Logger name="org.settermjd.loginverification" level="TRACE"/>
         <Root level="INFO">
             <appender-ref ref="stdout" />
             <appender-ref ref="file" />

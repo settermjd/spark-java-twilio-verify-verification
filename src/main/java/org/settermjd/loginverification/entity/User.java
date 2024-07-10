@@ -1,4 +1,4 @@
-package org.settermjd.LoginVerification;
+package org.settermjd.loginverification.entity;
 
 public record User(
         int id,
