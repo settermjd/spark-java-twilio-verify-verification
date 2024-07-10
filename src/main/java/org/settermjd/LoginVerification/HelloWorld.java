@@ -2,8 +2,8 @@ package org.settermjd.LoginVerification;
 
 import com.twilio.Twilio;
 import com.twilio.rest.verify.v2.service.Verification;
+import com.twilio.rest.verify.v2.service.VerificationCheck;
 
-import java.sql.*;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
@@ -20,31 +20,11 @@ import static spark.Spark.*;
 
 public class HelloWorld {
     private static final Logger logger = LogManager.getLogger(HelloWorld.class);
-
-    private static String getPhoneNumberForUsername(String username) {
-        String findMatchingUserQuery = "SELECT phone_number FROM user WHERE username = ?";
-        String dsn = "jdbc:sqlite:src/main/resources/database/database.sqlite";
-        try (Connection connection = DriverManager.getConnection(dsn);
-             PreparedStatement statement = connection.prepareStatement(findMatchingUserQuery);) {
-            statement.setQueryTimeout(30);
-            statement.setString(1, username);
-            ResultSet rs = statement.executeQuery();
-            if (rs.next()) {
-                return rs.getString("phone_number");
-            }
-            rs.close();
-        } catch (SQLException e) {
-            e.printStackTrace(System.err);
-        }
-
-        return "";
-    }
+    private static final UserService userService = new UserService();
+    private static final Dotenv dotenv = Dotenv.configure().load();
 
     public static void main(String[] args) {
         port(8080);
-
-        Dotenv dotenv = null;
-        dotenv = Dotenv.configure().load();
 
         String accountSID = dotenv.get("TWILIO_ACCOUNT_SID");
         String authToken = dotenv.get("TWILIO_AUTH_TOKEN");
@@ -73,7 +53,7 @@ public class HelloWorld {
                     return null;
                 }
 
-                String phoneNumber = getPhoneNumberForUsername(username);
+                String phoneNumber = userService.getPhoneNumberForUsername(username);
                 if (Objects.equals(phoneNumber, "")) {
                     request.session().attribute("error", "Could not find user's phone number");
                     response.redirect("/login", Redirect.Status.SEE_OTHER.intValue());
@@ -84,50 +64,71 @@ public class HelloWorld {
                 Verification
                         .creator(verifySID, phoneNumber, "sms")
                         .create();
+                request.session().attribute("username", username);
                 response.redirect("/verifyme", Redirect.Status.SEE_OTHER.intValue());
                 return null;
             });
         });
 
-        get("/verifyme", ((request, response) -> {
-            Map<String, Object> model = new HashMap<>();
-            return new ModelAndView(model, "templates/verifyme.vm");
-        }), new VelocityTemplateEngine());
+        path("/verifyme", () -> {
+            get("", ((request, response) -> {
+                Map<String, Object> model = new HashMap<>();
+                return new ModelAndView(model, "templates/verifyme.vm");
+            }), new VelocityTemplateEngine());
+            post("", ((request, response) -> {
+                Map<String, Object> model = new HashMap<>();
+                String code = request.queryParams("code");
+                if (code == null || code.isEmpty()) {
+                    String error = "Verification code not available";
+                    request.session().attribute("error", error);
+                    logger.error(error);
+                    response.redirect("/verifyme", Redirect.Status.SEE_OTHER.intValue());
+                    return null;
+                }
+                String username = request.session().attribute("username");
+                String phoneNumber = userService.getPhoneNumberForUsername(username);
+                if (Objects.equals(phoneNumber, "")) {
+                    request.session().attribute("error", "Could not find user's phone number");
+                    response.redirect("/verifyme", Redirect.Status.SEE_OTHER.intValue());
+                    return null;
+                }
+                VerificationCheck verificationCheck = verifyCode(phoneNumber, code);
+                final String path = (Objects.equals(verificationCheck.getStatus(), "approved"))
+                        ? "/profile"
+                        : "/verifyme";
+                response.redirect(path, Redirect.Status.SEE_OTHER.intValue());
+
+                return null;
+            }), new VelocityTemplateEngine());
+        });
 
         get("/profile", ((request, response) -> {
             Map<String, Object> model = new HashMap<>();
-
-            String findMatchingUserQuery = "SELECT * FROM user WHERE username = ?";
-            String dsn = "jdbc:sqlite:src/main/resources/database/database.sqlite";
-            try (Connection connection = DriverManager.getConnection(dsn);
-                 PreparedStatement statement = connection.prepareStatement(findMatchingUserQuery);) {
-                String username = request.session().attribute("username");
-                if (username == null || username.isEmpty()) {
-                    halt(404, "User not available");
-                }
-
-                statement.setQueryTimeout(30);
-                statement.setString(1, username);
-
-                ResultSet rs = statement.executeQuery();
-                while(rs.next())
-                {
-                    User user = new User(
-                            rs.getInt("id"),
-                            rs.getString("username"),
-                            rs.getString("first_name"),
-                            rs.getString("last_name"),
-                            rs.getString("email_address"),
-                            rs.getString("phone_number")
-                    );
-                    model.put("user", user);
-                }
-                rs.close();
-            } catch (SQLException e) {
-                e.printStackTrace(System.err);
+            String username = request.session().attribute("username");
+            if (username == null || username.isEmpty()) {
+                response.status(404);
+                return new ModelAndView(model, "templates/404.vm");
             }
+
+            User user = userService.getUserByUsername(username);
+            model.put("user", user);
 
             return new ModelAndView(model, "templates/profile.vm");
         }), new VelocityTemplateEngine());
+    }
+
+    /**
+     * Checks if the supplied verification code is valid for the supplied phone number
+     *
+     * @param phoneNumber the phone number that the code was sent to
+     * @param code the code sent to the specified phone number
+     * @return a VerificationCheck object containing whether the supplied code is valid
+     */
+    private static VerificationCheck verifyCode(String phoneNumber, String code) {
+        Twilio.init(dotenv.get("TWILIO_ACCOUNT_SID"), dotenv.get("TWILIO_AUTH_TOKEN"));
+        return VerificationCheck.creator(dotenv.get("VERIFY_SERVICE_SID"))
+                        .setTo(phoneNumber)
+                        .setCode(code)
+                        .create();
     }
 }

@@ -1,6 +1,6 @@
 <h1>Please verify your account ...</h1>
 
-<form method="post" action="/login">
+<form method="post" action="/verifyme">
     <div>
         <label for="username">Enter the code sent to your phone</label>
         <input name="code" id="code" value="">
