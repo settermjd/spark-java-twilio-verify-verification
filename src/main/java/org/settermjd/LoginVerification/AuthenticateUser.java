@@ -19,6 +19,9 @@ public class AuthenticateUser {
     private static final Logger logger = LogManager.getLogger(AuthenticateUser.class);
     private static final UserService userService = new UserService();
 
+    public static final String ROUTE_PATH_LOGIN = "/login";
+    public static final String ROUTE_PATH_PROFILE = "/profile";
+    public static final String ROUTE_PATH_VERIFY = "/verifyme";
 
     public static void main(String[] args) {
         port(8080);
@@ -34,8 +37,9 @@ public class AuthenticateUser {
         staticFiles.location("/public");
         staticFiles.expireTime(600);
 
-        path("/login", () -> {
-            before("/*", (q, a) -> logger.info("Received login request"));
+        path(ROUTE_PATH_LOGIN, () -> {
+            before("/*", (q, a) -> logger.info("Received login route request"));
+
             get("", (request, response) -> {
                 Map<String, Object> model = new HashMap<>();
                 String error = request.session().attribute("error");
@@ -50,25 +54,27 @@ public class AuthenticateUser {
                     String error = "Username not available";
                     request.session().attribute("error", error);
                     logger.error(error);
-                    response.redirect("/login", Redirect.Status.SEE_OTHER.intValue());
+                    response.redirect(ROUTE_PATH_LOGIN, Redirect.Status.SEE_OTHER.intValue());
                     return null;
                 }
 
                 String phoneNumber = userService.getPhoneNumberForUsername(username);
                 if (Objects.equals(phoneNumber, "")) {
                     request.session().attribute("error", "Could not find user's phone number");
-                    response.redirect("/login", Redirect.Status.SEE_OTHER.intValue());
+                    response.redirect(ROUTE_PATH_LOGIN, Redirect.Status.SEE_OTHER.intValue());
                     return null;
                 }
 
                 twilioService.sendVerificationCode(phoneNumber);
                 request.session().attribute("username", username);
-                response.redirect("/verifyme", Redirect.Status.SEE_OTHER.intValue());
+                response.redirect(ROUTE_PATH_VERIFY, Redirect.Status.SEE_OTHER.intValue());
                 return null;
             });
         });
 
-        path("/verifyme", () -> {
+        path(ROUTE_PATH_VERIFY, () -> {
+            before("/*", (q, a) -> logger.info("Received verify route request"));
+
             get("", ((request, response) -> {
                 Map<String, Object> model = new HashMap<>();
                 return new ModelAndView(model, "templates/verifyme.vm");
@@ -79,29 +85,29 @@ public class AuthenticateUser {
                     String error = "Verification code not available";
                     request.session().attribute("error", error);
                     logger.error(error);
-                    response.redirect("/verifyme", Redirect.Status.SEE_OTHER.intValue());
+                    response.redirect(ROUTE_PATH_VERIFY, Redirect.Status.SEE_OTHER.intValue());
                     return null;
                 }
                 String username = request.session().attribute("username");
                 String phoneNumber = userService.getPhoneNumberForUsername(username);
                 if (Objects.equals(phoneNumber, "")) {
                     request.session().attribute("error", "Could not find user's phone number");
-                    response.redirect("/verifyme", Redirect.Status.SEE_OTHER.intValue());
+                    response.redirect(ROUTE_PATH_VERIFY, Redirect.Status.SEE_OTHER.intValue());
                     return null;
                 }
                 
                 VerificationCheck verificationCheck = twilioService.verifyCode(phoneNumber, code);
                 final String path = (Objects.equals(verificationCheck.getStatus(), "approved"))
-                        ? "/profile"
-                        : "/verifyme";
+                        ? ROUTE_PATH_PROFILE
+                        : ROUTE_PATH_VERIFY;
                 response.redirect(path, Redirect.Status.SEE_OTHER.intValue());
 
                 return null;
             }), new VelocityTemplateEngine());
         });
 
-        get("/profile", ((request, response) -> {
-            Map<String, Object> model = new HashMap<>();
+        get(ROUTE_PATH_PROFILE, ((request, response) -> {
+            before("/*", (q, a) -> logger.info("Received profile route request"));
             String username = request.session().attribute("username");
             if (username == null || username.isEmpty()) {
                 response.status(404);
