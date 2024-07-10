@@ -11,25 +11,21 @@ import java.util.Objects;
 import io.github.cdimascio.dotenv.Dotenv;
 import org.apache.logging.log4j.Logger;
 import org.apache.logging.log4j.LogManager;
-import org.glassfish.grizzly.http.util.HttpStatus;
 import spark.ModelAndView;
 import spark.Redirect;
 import spark.template.velocity.VelocityTemplateEngine;
 
 import static spark.Spark.*;
 
-public class HelloWorld {
-    private static final Logger logger = LogManager.getLogger(HelloWorld.class);
+public class AuthenticateUser {
+    private static final Logger logger = LogManager.getLogger(AuthenticateUser.class);
     private static final UserService userService = new UserService();
     private static final Dotenv dotenv = Dotenv.configure().load();
 
     public static void main(String[] args) {
         port(8080);
 
-        String accountSID = dotenv.get("TWILIO_ACCOUNT_SID");
-        String authToken = dotenv.get("TWILIO_AUTH_TOKEN");
-        String verifySID = dotenv.get("VERIFY_SERVICE_SID");
-
+        // Make static files available in the application
         staticFiles.location("/public");
         staticFiles.expireTime(600);
 
@@ -60,10 +56,7 @@ public class HelloWorld {
                     return null;
                 }
 
-                Twilio.init(accountSID, authToken);
-                Verification
-                        .creator(verifySID, phoneNumber, "sms")
-                        .create();
+                sendVerificationCode(phoneNumber);
                 request.session().attribute("username", username);
                 response.redirect("/verifyme", Redirect.Status.SEE_OTHER.intValue());
                 return null;
@@ -76,7 +69,6 @@ public class HelloWorld {
                 return new ModelAndView(model, "templates/verifyme.vm");
             }), new VelocityTemplateEngine());
             post("", ((request, response) -> {
-                Map<String, Object> model = new HashMap<>();
                 String code = request.queryParams("code");
                 if (code == null || code.isEmpty()) {
                     String error = "Verification code not available";
@@ -130,5 +122,17 @@ public class HelloWorld {
                         .setTo(phoneNumber)
                         .setCode(code)
                         .create();
+    }
+
+    /**
+     * Generates and sends a verification code via SMS
+     *
+     * @param phoneNumber the phone number to send the code to
+     */
+    public static void sendVerificationCode(String phoneNumber) {
+        Twilio.init(dotenv.get("TWILIO_ACCOUNT_SID"), dotenv.get("TWILIO_AUTH_TOKEN"));
+        Verification
+                .creator(dotenv.get("VERIFY_SERVICE_SID"), phoneNumber, "sms")
+                .create();
     }
 }
