@@ -1,7 +1,5 @@
 package org.settermjd.LoginVerification;
 
-import com.twilio.Twilio;
-import com.twilio.rest.verify.v2.service.Verification;
 import com.twilio.rest.verify.v2.service.VerificationCheck;
 
 import java.util.HashMap;
@@ -20,10 +18,17 @@ import static spark.Spark.*;
 public class AuthenticateUser {
     private static final Logger logger = LogManager.getLogger(AuthenticateUser.class);
     private static final UserService userService = new UserService();
-    private static final Dotenv dotenv = Dotenv.configure().load();
+
 
     public static void main(String[] args) {
         port(8080);
+
+        Dotenv dotenv = Dotenv.configure().load();
+        TwilioService twilioService = new TwilioService(
+                dotenv.get("TWILIO_ACCOUNT_SID"),
+                dotenv.get("TWILIO_AUTH_TOKEN"),
+                dotenv.get("VERIFY_SERVICE_SID")
+        );
 
         // Make static files available in the application
         staticFiles.location("/public");
@@ -56,7 +61,7 @@ public class AuthenticateUser {
                     return null;
                 }
 
-                sendVerificationCode(phoneNumber);
+                twilioService.sendVerificationCode(phoneNumber);
                 request.session().attribute("username", username);
                 response.redirect("/verifyme", Redirect.Status.SEE_OTHER.intValue());
                 return null;
@@ -84,7 +89,8 @@ public class AuthenticateUser {
                     response.redirect("/verifyme", Redirect.Status.SEE_OTHER.intValue());
                     return null;
                 }
-                VerificationCheck verificationCheck = verifyCode(phoneNumber, code);
+                
+                VerificationCheck verificationCheck = twilioService.verifyCode(phoneNumber, code);
                 final String path = (Objects.equals(verificationCheck.getStatus(), "approved"))
                         ? "/profile"
                         : "/verifyme";
@@ -107,32 +113,5 @@ public class AuthenticateUser {
 
             return new ModelAndView(model, "templates/profile.vm");
         }), new VelocityTemplateEngine());
-    }
-
-    /**
-     * Checks if the supplied verification code is valid for the supplied phone number
-     *
-     * @param phoneNumber the phone number that the code was sent to
-     * @param code the code sent to the specified phone number
-     * @return a VerificationCheck object containing whether the supplied code is valid
-     */
-    private static VerificationCheck verifyCode(String phoneNumber, String code) {
-        Twilio.init(dotenv.get("TWILIO_ACCOUNT_SID"), dotenv.get("TWILIO_AUTH_TOKEN"));
-        return VerificationCheck.creator(dotenv.get("VERIFY_SERVICE_SID"))
-                        .setTo(phoneNumber)
-                        .setCode(code)
-                        .create();
-    }
-
-    /**
-     * Generates and sends a verification code via SMS
-     *
-     * @param phoneNumber the phone number to send the code to
-     */
-    public static void sendVerificationCode(String phoneNumber) {
-        Twilio.init(dotenv.get("TWILIO_ACCOUNT_SID"), dotenv.get("TWILIO_AUTH_TOKEN"));
-        Verification
-                .creator(dotenv.get("VERIFY_SERVICE_SID"), phoneNumber, "sms")
-                .create();
     }
 }
