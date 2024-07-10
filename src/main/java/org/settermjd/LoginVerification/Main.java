@@ -15,8 +15,8 @@ import spark.template.velocity.VelocityTemplateEngine;
 
 import static spark.Spark.*;
 
-public class AuthenticateUser {
-    private static final Logger logger = LogManager.getLogger(AuthenticateUser.class);
+public class Main {
+    private static final Logger logger = LogManager.getLogger(Main.class);
     private static final UserService userService = new UserService();
 
     public static final String ROUTE_PATH_LOGIN = "/login";
