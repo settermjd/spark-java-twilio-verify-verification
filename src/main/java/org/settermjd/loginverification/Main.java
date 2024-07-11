@@ -23,6 +23,7 @@ public class Main {
     private static final UserService userService = new UserService();
 
     public static final String ROUTE_PATH_LOGIN = "/login";
+    public static final String ROUTE_PATH_LOGOUT = "/logout";
     public static final String ROUTE_PATH_PROFILE = "/profile";
     public static final String ROUTE_PATH_VERIFY = "/verify";
 
@@ -76,6 +77,12 @@ public class Main {
                 return null;
             });
         });
+
+        get(ROUTE_PATH_LOGOUT, (request, response) -> {
+            request.session().removeAttribute("username");
+            response.redirect(ROUTE_PATH_LOGIN, Redirect.Status.SEE_OTHER.intValue());
+            return null;
+        }, new VelocityTemplateEngine());
 
         path(ROUTE_PATH_VERIFY, () -> {
             before("/*", (q, a) -> logger.info("Received verify route request"));

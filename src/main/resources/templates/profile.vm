@@ -49,7 +49,7 @@
         </div>
         <div class="text-center mt-8 text-base text-stone-600/75">
             Finished?
-            <a href="/login"
+            <a href="/logout"
                class="text-indigo-500 font-semibold hover:decoration-2 hover:underline hover:decoration-indigo-600 hover:underline-offset-2 transition duration-200 delay-100 ease-in-out">Logout.</a>
         </div>
     </div>
