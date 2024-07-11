@@ -24,7 +24,7 @@ public class Main {
 
     public static final String ROUTE_PATH_LOGIN = "/login";
     public static final String ROUTE_PATH_PROFILE = "/profile";
-    public static final String ROUTE_PATH_VERIFY = "/verifyme";
+    public static final String ROUTE_PATH_VERIFY = "/verify";
 
     public static void main(String[] args) {
         port(8080);
@@ -81,7 +81,7 @@ public class Main {
             before("/*", (q, a) -> logger.info("Received verify route request"));
 
             get("", ((request, response) -> {
-                return new ModelAndView(model, "templates/verifyme.vm");
+                return new ModelAndView(model, "templates/verify.vm");
             }), new VelocityTemplateEngine());
 
             post("", ((request, response) -> {
