@@ -41,3 +41,4 @@ build/
 **/database.sqlite
 output.log
 sample.db
+cookiefile
