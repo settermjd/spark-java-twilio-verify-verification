@@ -1,17 +1,39 @@
-<h1>Login</h1>
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <link href="/css/styles.css" rel="stylesheet">
+    <title>Authenticate with Twilio Verify and Java | Login</title>
+</head>
+<body class="mx-auto text-stone-700 flex items-center place-items-center bg-slate-50">
+<div class="mx-auto my-auto max-w-lg md:w-1/2 p-5">
+    <h1 class="font-bold text-2xl text-center">Login</h1>
 
-#set ( $class = "" )
-#if ( $error )
-#set ( $class = "error" )
-<div class="$class">$error</div>
-#end
-<form method="post" action="/login">
-    <div class="$class">
-        <label for="username">Username</label>
-        <input name="username" id="username" tabindex="1" value="">
+    #set ( $class = "" )
+    #if ( $error )
+    #set ( $class = "error" )
+    <div class="$class">$error</div>
+    #end
+    <form method="post"
+          action="/login"
+          class="border-2 border-neutral-100 rounded-md p-5 shadow-sm bg-white drop-shadow-sm">
+        <div class="$class mb-5">
+            <label for="username" class="block mb-2 text-stone-500 font-semibold w-full">Username</label>
+            <input name="username"
+                   id="username"
+                   type="text"
+                   tabindex="1"
+                   class="p-2 rounded-md px-3 py-1 border-2 border-slate-200 w-full focus:bg-neutral-50 focus:drop-shadow-sm transition duration-200 delay-100 ease-in-out">
+        </div>
+        <input type="submit" name="submit" tabindex="2" value="Request verification code"
+               class="px-3 py-2 bg-indigo-700 text-white rounded-md font-medium w-full hover:cursor-pointer hover:bg-indigo-600 transition duration-200 delay-100 ease-in-out">
+    </form>
+    <div class="text-center mt-8 text-base text-stone-600/75">
+        Already have a verification code? <a
+            href="/verify"
+            class="text-indigo-500 font-semibold hover:decoration-2 hover:underline hover:decoration-indigo-600 hover:underline-offset-2 transition duration-200 delay-100 ease-in-out">Validate it.</a>
     </div>
-    <input type="submit"
-           name="submit"
-           tabindex="2"
-           value="Request verification code">
-</form>
+</div>
+</body>
+
+</html>
